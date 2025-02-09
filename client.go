@@ -142,6 +142,12 @@ func (c *client) Close() error {
 	return nil
 }
 
+func (c *client) isClosed() bool {
+	c.closeLock.Lock()
+	defer c.closeLock.Unlock()
+	return c.closed
+}
+
 // setInterface is used to set the query interface, uses sytem
 // default if not provided
 func (c *client) setInterface(iface *net.Interface) error {
@@ -254,7 +260,7 @@ func (c *client) recv(l *net.UDPConn, msgCh chan *dns.Msg) {
 		return
 	}
 	buf := make([]byte, 65536)
-	for !c.closed {
+	for !c.isClosed() {
 		n, err := l.Read(buf)
 		if err != nil {
 			continue
